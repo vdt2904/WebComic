@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Configuration;
+using WebComic.Helpter;
 using WebComic.Interface;
 using WebComic.Models;
 using WebComic.Repositories;
@@ -21,6 +22,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 //Cấu hình Interface & sevice
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+// hàm tái sử dụng
+builder.Services.AddSingleton<Reuse>();
 //redis
 builder.Services.AddStackExchangeRedisCache(options =>
 {

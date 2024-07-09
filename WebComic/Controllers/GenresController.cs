@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using WebComic.Helpter;
 using WebComic.Interface;
 using WebComic.Models;
 
@@ -19,11 +20,13 @@ namespace WebComic.Controllers
         private readonly ComicDbContext _context;
         private readonly IGenreRepository _genresRepository;
         private readonly IDistributedCache _distributedCache;
-        public GenresController(ComicDbContext context, IGenreRepository genreRepository, IDistributedCache distributedCache)
+        private readonly Reuse _reuse;
+        public GenresController(ComicDbContext context, IGenreRepository genreRepository, IDistributedCache distributedCache, Reuse reuse)
         {
             _context = context;
             _genresRepository = genreRepository;
             _distributedCache = distributedCache;
+            _reuse = reuse;
         }
 
         // GET: api/Genres
@@ -31,7 +34,7 @@ namespace WebComic.Controllers
         public async Task<ActionResult<IEnumerable<Genre>>> GetGenres()
         {
             var genres = new List<Genre>();
-            var cachedGenres = await _distributedCache.GetStringAsync("GenresList");
+            var cachedGenres = await _distributedCache.GetStringAsync("genresList");
             if (cachedGenres != null)
             {
                 genres = JsonConvert.DeserializeObject<List<Genre>>(cachedGenres);
@@ -40,11 +43,7 @@ namespace WebComic.Controllers
             {
                 var genresEnumerable = await _genresRepository.GetGenres();
                 genres = genresEnumerable.ToList();
-                var cacheOptions = new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
-                };
-                await _distributedCache.SetStringAsync("GenresList", JsonConvert.SerializeObject(genres), cacheOptions);
+                await _reuse.ReuseCURD(genres, "genresList");
 
             }
             return Ok(genres);
@@ -55,7 +54,9 @@ namespace WebComic.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Genre>> GetGenre(int id)
         {
-            return Ok(_genresRepository.GetGenreById(id));
+            var genre = await _genresRepository.GetGenreById(id);
+            return Ok(genre);
+
         }
 
         // PUT: api/Genres/5
@@ -65,11 +66,7 @@ namespace WebComic.Controllers
         {
             await _genresRepository.UpdateGenre(id, genre);
             var genres = await _genresRepository.GetGenres();
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
-            };
-            await _distributedCache.SetStringAsync("GenresList", JsonConvert.SerializeObject(genres), cacheOptions);
+            await _reuse.ReuseCURD(genres, "genresList");
             return Ok();
         }
 
@@ -78,14 +75,17 @@ namespace WebComic.Controllers
         [HttpPost]
         public async Task<ActionResult<Genre>> PostGenre(Genre genre)
         {
-            await _genresRepository.CreateGenre(genre);
-            var genres = await _genresRepository.GetGenres();
-            var cacheOptions = new DistributedCacheEntryOptions
+            try
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
-            };
-            await _distributedCache.SetStringAsync("GenresList", JsonConvert.SerializeObject(genres), cacheOptions);
-            return Ok();
+                await _genresRepository.CreateGenre(genre);
+                var genres = await _genresRepository.GetGenres();
+                await _reuse.ReuseCURD(genres, "genresList");
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE: api/Genres/5
@@ -94,11 +94,7 @@ namespace WebComic.Controllers
         {
             await _genresRepository.DeleteGenre(id);
             var genres = await _genresRepository.GetGenres();
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
-            };
-            await _distributedCache.SetStringAsync("GenresList", JsonConvert.SerializeObject(genres), cacheOptions);
+            await _reuse.ReuseCURD(genres, "genresList");
             return Ok();
         }
 

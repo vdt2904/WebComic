@@ -37,10 +37,20 @@ namespace WebComic.Repositories
 
         public async Task<Genre> CreateGenre(Genre genre)
         {
+            // Kiểm tra xem tên thể loại đã tồn tại chưa
+            var existingGenre = await _context.Genres.FirstOrDefaultAsync(g => g.Name == genre.Name);
+
+            if (existingGenre != null)
+            {
+                // Nếu tên thể loại đã tồn tại, bạn có thể xử lý tùy ý, ví dụ như trả về BadRequest
+                throw new InvalidOperationException("Tên thể loại đã tồn tại trong cơ sở dữ liệu.");
+            }
+
             _context.Genres.Add(genre);
             await _context.SaveChangesAsync();
             return genre;
         }
+
 
         public async Task DeleteGenre(int id)
         {
