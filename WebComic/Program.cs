@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Configuration;
+using WebComic.Interface;
 using WebComic.Models;
+using WebComic.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.json");
@@ -17,6 +19,8 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 });
+//Cấu hình Interface & sevice
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 //redis
 builder.Services.AddStackExchangeRedisCache(options =>
 {
