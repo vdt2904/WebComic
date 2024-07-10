@@ -8,7 +8,13 @@ namespace WebComic.Areas.Admin.Controllers
     {
         [Route("admin")]
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index()        
+        {
+            return View();
+        }
+        [Route("admin/tags")]
+        [HttpGet]
+        public IActionResult Tags()
         {
             return View();
         }

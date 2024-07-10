@@ -9,7 +9,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using WebComic.Helpter;
 using WebComic.Interface;
-using WebComic.Models;
+using WebComic.Models;  
 
 namespace WebComic.Controllers
 {

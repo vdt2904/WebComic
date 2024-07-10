@@ -1,0 +1,253 @@
+﻿@{
+	ViewData["Title"] = "Tags";
+	Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+<div class="col-12 mt-5">
+	<div class="card">
+		<div class="card-body">
+			<h4 class="header-title">Danh sách các thẻ</h4>
+			<button id="addTagButton" class="btn btn-primary mb-3">Thêm mới</button>
+
+			<div class="single-table">
+				<div class="table-responsive">
+					<table class="table table-hover progress-table text-center">
+						<thead class="text-uppercase">
+							<tr>
+								<th scope="col">ID</th>
+								<th scope="col">Tag Name</th>
+								<th scope="col">Action</th>
+							</tr>
+						</thead>
+						<tbody id="tags_body">
+						</tbody>
+					</table>
+				</div>
+				<nav aria-label="...">
+					<ul class="pagination pg-color-border" id="pagination">
+					</ul>
+				</nav>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="addTagModal" class="modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Thêm tag mới</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="tagForm">
+					<div class="form-group">
+						<label for="tagName">Tag Name</label>
+						<input type="text" class="form-control" id="tagName" placeholder="Enter tag name">
+					</div>
+					<button type="submit" class="btn btn-success">Save</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="updateTagModal" class="modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Chỉnh sửa tag</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="updateTagForm">
+					<input type="hidden" id="updateTagId">
+					<div class="form-group">
+						<label for="updateTagName">Tag Name</label>
+						<input type="text" class="form-control" id="updateTagName" placeholder="Enter tag name">
+					</div>
+					<button type="submit" class="btn btn-primary">Update</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script src="~/Admin/Ajax/tags.js"></script>
+<script>
+
+	function getAllTags(pageNumber) {
+		const pageSize = 5; // Kích thước trang
+
+		// Gọi API để lấy danh sách các tags
+		$.ajax({
+			url: `https://localhost:7107/api/tags?pageNumber=${pageNumber}`,
+			method: 'GET',
+			contentType: 'application/json',
+			headers: { 'Authorization': 'Bearer' },
+			dataType: 'json',
+			success: function (response, status, xhr) {
+				// Lấy thông tin phân trang từ header X-Pagination
+				const paginationHeader = xhr.getResponseHeader('X-Pagination');
+				const paginationInfo = JSON.parse(paginationHeader);
+
+				// Hiển thị thông tin phân trang (ví dụ: in ra console)
+				console.log('Total records:', paginationInfo.TotalRecords);
+				console.log('Total pages:', paginationInfo.TotalPages);
+				console.log('Current page:', paginationInfo.CurrentPage);
+				console.log('Page size:', paginationInfo.PageSize);
+
+				// Xử lý dữ liệu tags được trả về
+				console.log('Tags:', response);
+
+				// Hiển thị dữ liệu tags lên giao diện
+				renderTags(response);
+				renderPagination(paginationInfo);
+
+			},
+			error: function (xhr, status, error) {
+				console.error('Error fetching tags:', error);
+				// Xử lý lỗi nếu cần thiết
+			}
+		});
+	}
+
+	// Gọi hàm getAllTags với pageNumber mong muốn
+	getAllTags(1); // Ví dụ: Lấy trang đầu tiên
+
+	function renderTags(response) {
+		if (!response || !Array.isArray(response)) {
+			console.error('Invalid response format:', response);
+			return;
+		}
+
+		let table = '';
+		for (let i = 0; i < response.length; ++i) {
+			table += '<tr>';
+			table += `<td>${response[i].tagId}</td>`;
+			table += `<td>${response[i].name}</td>`;
+			table += '<td><ul class="d-flex justify-content-center">';
+			table += `<li class="mr-3"><a href="#" class="text-secondary" onclick="editTag(${response[i].tagId})"><i class="fa fa-edit"></i></a></li>`;
+			table += `<li><a href="#" class="text-danger" onclick="deleteTag('${response[i].tagId}')"><i class="ti-trash"></i></a></li>`;
+			table += '</ul></td>';
+			table += '</tr>';
+		}
+		document.getElementById('tags_body').innerHTML = table;
+	}
+	function renderPagination(paginationInfo) {
+		const pagination = document.getElementById('pagination');
+		pagination.innerHTML = '';
+
+		// Previous button
+		const prevClass = paginationInfo.CurrentPage === 1 ? 'disabled' : '';
+		pagination.innerHTML += `<li class="page-item ${prevClass}"><a class="page-link" href="#" onclick="getAllTags(${paginationInfo.CurrentPage - 1})">Previous</a></li>`;
+
+		// Page numbers
+		for (let i = 1; i <= paginationInfo.TotalPages; i++) {
+			const activeClass = paginationInfo.CurrentPage === i ? 'active' : '';
+			pagination.innerHTML += `<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="getAllTags(${i})">${i}</a></li>`;
+		}
+
+		// Next button
+		const nextClass = paginationInfo.CurrentPage === paginationInfo.TotalPages ? 'disabled' : '';
+		pagination.innerHTML += `<li class="page-item ${nextClass}"><a class="page-link" href="#" onclick="getAllTags(${paginationInfo.CurrentPage + 1})">Next</a></li>`;
+	}
+
+
+	document.getElementById('addTagButton').addEventListener('click', function () {
+		$('#addTagModal').modal('show');
+	});
+
+	// Xử lý việc thêm mới tag khi submit form
+	document.getElementById('tagForm').addEventListener('submit', function (event) {
+		event.preventDefault();
+
+		const tagName = document.getElementById('tagName').value;
+
+		$.ajax({
+			url: 'https://localhost:7107/api/tags',
+			method: 'POST',
+			contentType: 'application/json',
+			headers: { 'Authorization': 'Bearer' },
+			data: JSON.stringify({ name: tagName }),
+			success: function (response) {
+				alert('Tag added successfully!');
+				$('#addTagModal').modal('hide');
+				getAllTags(1); // Refresh tags list after adding new tag
+			},
+			error: function (xhr, status, error) {
+				console.error('Error adding tag:', error);
+				alert('Failed to add tag. Please check the console for details.');
+			}
+		});
+	});
+
+	// Hiển thị modal chỉnh sửa khi click vào nút edit
+	function editTag(tagId) {
+		// Gọi API để lấy thông tin chi tiết của tag
+		$.ajax({
+			url: `https://localhost:7107/api/tags/${tagId}`,
+			method: 'GET',
+			contentType: 'application/json',
+			headers: { 'Authorization': 'Bearer' },
+			success: function (response) {
+				// Hiển thị dữ liệu tag lên form chỉnh sửa
+				$('#updateTagId').val(response.tagId);
+				$('#updateTagName').val(response.name);
+				$('#updateTagModal').modal('show');
+			},
+			error: function (xhr, status, error) {
+				console.error('Error fetching tag details:', error);
+			}
+		});
+	}
+
+	// Xử lý cập nhật tag khi submit form chỉnh sửa
+	document.getElementById('updateTagForm').addEventListener('submit', function (event) {
+		event.preventDefault();
+
+		const tagId = document.getElementById('updateTagId').value;
+		const tagName = document.getElementById('updateTagName').value;
+
+		// Gửi yêu cầu PUT để cập nhật tag
+		$.ajax({
+			url: `https://localhost:7107/api/tags/${tagId}`,
+			method: 'PUT',
+			contentType: 'application/json',
+			headers: { 'Authorization': 'Bearer' },
+			data: JSON.stringify({ tagId: tagId, name: tagName }),
+			success: function (response) {
+				alert('Tag updated successfully!');
+				$('#updateTagModal').modal('hide');
+				getAllTags(1); // Refresh tags list after updating tag
+			},
+			error: function (xhr, status, error) {
+				console.error('Error updating tag:', error);
+			}
+		});
+	});
+
+	// Xử lý xóa tag khi click vào nút Xóa
+	function deleteTag(tagId) {
+		if (confirm("Are you sure you want to delete this tag?")) {
+			$.ajax({
+				url: `https://localhost:7107/api/tags/${tagId}`,
+				method: 'DELETE',
+				headers: { 'Authorization': 'Bearer' },
+				success: function (response) {
+					alert('Tag deleted successfully!');
+					getAllTags(1); // Refresh tags list after deleting tag
+				},
+				error: function (xhr, status, error) {
+					console.error('Error deleting tag:', error);
+					alert('Failed to delete tag. Please check the console for details.');
+				}
+			});
+		}
+	}
+
+</script>
