@@ -12,12 +12,14 @@ namespace WebComic.Helpter
         }
         public async Task ReuseCURD<T>(T collection, string name)
         {
+
             var cacheOptions = new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
             };
             
             await _distributedCache.SetStringAsync(name, JsonConvert.SerializeObject(collection), cacheOptions);
         }
     }
 }
+

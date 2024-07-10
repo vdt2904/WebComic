@@ -18,5 +18,11 @@ namespace WebComic.Areas.Admin.Controllers
         {
             return View();
         }
+        [Route("admin/error")]
+        [HttpGet]
+        public IActionResult Error()
+        {
+            return View();
+        }
     }
 }

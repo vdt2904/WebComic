@@ -237,8 +237,8 @@ namespace WebComic.Models
                 entity.Property(e => e.GenreId).HasColumnName("GenreID");
 
                 entity.Property(e => e.Name)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
+                    .HasMaxLength(100)
+                    .IsUnicode(true);
             });
 
             modelBuilder.Entity<RefreshToken>(entity =>
