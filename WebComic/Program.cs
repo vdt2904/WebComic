@@ -10,7 +10,9 @@ builder.Configuration.AddJsonFile("appsettings.json");
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ComicDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnect")));
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnect"),
+
+        sqlOptions => sqlOptions.EnableRetryOnFailure()));
 //swager
 builder.Services.AddSwaggerGen(c =>
 {

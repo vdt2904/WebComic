@@ -1,0 +1,28 @@
+﻿
+@{
+    ViewData["Title"] = "EditGenre";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="col-12 mt-5">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="header-title">Sửa thể loại</h4>
+            <form>
+                <div class="form-group">
+                    <label>Tên thể loại</label>
+                    <input type="text" class="form-control" id="genreName">
+                    <span id="errorSpan" class="text-danger"></span>
+                </div>
+                <button type="button" onclick="editgenre()" class="btn btn-primary mt-4 pr-4 pl-4">Sửa</button>
+                <a type="button" href="/admin/genre" class="btn btn-secondary mt-4 pr-4 pl-4">Quay lại</a>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="@Url.Content("~/admin/ajax/genre.js")"></script>
+<script>
+    var GenreId = @ViewBag.GenreId;
+    getdetail()
+</script>
+
