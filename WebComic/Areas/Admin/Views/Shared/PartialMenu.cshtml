@@ -2,7 +2,7 @@
 <div class="sidebar-menu">
     <div class="sidebar-header">
         <div class="logo">
-            <a href="index.html"><img src="../Admin/assets/images/icon/logo.png" alt="logo"></a>
+            <a href="index.html"><img src="/Admin/assets/images/icon/logo.png" alt="logo"></a>
         </div>
     </div>
     <div class="main-menu">
@@ -10,7 +10,7 @@
             <nav>
                 <ul class="metismenu" id="menu">
                     <li>
-                        <a href="#" aria-expanded="true"><i class="ti-dashboard"></i><span>Bảng điều khiển</span></a>
+                        <a href="/admin" aria-expanded="true"><i class="ti-dashboard"></i><span>Bảng điều khiển</span></a>
                     </li>   
                     <li>
                         <a href="#" aria-expanded="true">
@@ -19,7 +19,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" aria-expanded="true">
+                        <a href="/admin/genre" aria-expanded="true">
                             <i class="fa fa-table"></i>
                             <span>Quản lý thể loại</span>
                         </a>                      
@@ -47,3 +47,5 @@
         </div>
     </div>
 </div>
+
+<script src="@Url.Content("~/admin/ajax/menu.js")"></script>
